@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แต่งตัวให้น้องอาบี้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&family=Sarabun:wght@400;600&display=swap">
+<style>
+/* Layout: one column; job card, character stage, 4x2 PPE tray, one action button. Safety-yellow accent, matches จิ้มจุดเสี่ยง */
+:root{
+  --bg:#f6f5ef; --surface:#ffffff; --fg:#1d1f1a; --muted:#5e6156; --line:#dddbd0;
+  --yellow:#f5c400; --ink:#16170f; --tile:#ecebe2; --stage:#e9eef0;
+  --bad:#c8321e; --bad-bg:#fde3de; --ok:#1f8a4c; --ok-bg:#e1f3e8; --warn:#a86400;
+  --display:"Mitr","Sarabun",system-ui,sans-serif; --body:"Sarabun",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15160f; --surface:#202118; --fg:#f1efe4; --muted:#a8a796; --line:#36372b; --tile:#2a2b21; --stage:#262a2b;
+  --bad:#ff6b55; --bad-bg:#46221b; --ok:#4cc37f; --ok-bg:#1b3626; --warn:#f0a63a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15160f; --surface:#202118; --fg:#f1efe4; --muted:#a8a796; --line:#36372b; --tile:#2a2b21; --stage:#262a2b;
+  --bad:#ff6b55; --bad-bg:#46221b; --ok:#4cc37f; --ok-bg:#1b3626; --warn:#f0a63a; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-user-select:none;user-select:none}
+.wrap{max-width:480px;margin:0 auto;padding-inline:16px;padding-block:20px 32px;display:flex;flex-direction:column;gap:14px}
+.stripe{height:10px;border-radius:2px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 14px,var(--ink) 14px 28px)}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,7.5vw,38px);line-height:1.15;margin:0;text-wrap:balance}
+h1 span{background:var(--yellow);color:var(--ink);padding:0 .2em;border-radius:3px}
+.sub{color:var(--muted);margin:0}
+.hud{display:flex;justify-content:space-between;font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.hud b{color:var(--fg);font-weight:600}
+.job{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.job .area{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--muted)}
+.job .t{font-family:var(--display);font-size:clamp(18px,5vw,21px);font-weight:600;line-height:1.35}
+.job .n{font-size:14px;color:var(--muted)}
+.stage{background:var(--stage);border-radius:12px;display:flex;justify-content:center;padding-block:10px}
+.stage svg{width:min(210px,58vw);height:auto;max-width:100%}
+.layer{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
+.layer.on{opacity:1;transform:none}
+.tray{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.item{background:var(--tile);color:var(--fg);border:2px solid transparent;border-radius:10px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--body);font-size:13px;line-height:1.2;text-align:center;min-height:78px;justify-content:center}
+.item .ic{font-size:28px;line-height:1}
+.item[aria-pressed="true"]{background:var(--surface);border-color:var(--yellow)}
+.item.r-ok{border-color:var(--ok);background:var(--ok-bg)}
+.item.r-miss{border-color:var(--warn);border-style:dashed}
+.item.r-extra{border-color:var(--bad);background:var(--bad-bg)}
+.item:disabled{cursor:default}
+.item:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.btn{font-family:var(--display);font-size:20px;font-weight:600;border:0;border-radius:10px;padding:15px;background:var(--yellow);color:var(--ink);cursor:pointer;width:100%}
+.fb{border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.fb.ok{background:var(--ok-bg)} .fb.bad{background:var(--bad-bg)}
+.fb strong{font-family:var(--display);font-weight:600;font-size:18px}
+.fb.ok strong{color:var(--ok)} .fb.bad strong{color:var(--bad)}
+.fb p{margin:0}
+.namebox{display:flex;flex-direction:column;gap:6px}
+.namebox label{font-family:var(--display);font-size:15px}
+.namebox input{font:inherit;width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);-webkit-user-select:text;user-select:text}
+.namebox input:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+.err{color:var(--bad);font-size:14px}
+.player{font-family:var(--display);font-size:15px;color:var(--muted);text-align:center}
+.player b{color:var(--fg);font-weight:600}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px;text-align:center}
+.big{font-family:var(--display);font-size:60px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.rank{font-family:var(--display);font-size:18px}
+.list{margin:0;padding:0;list-style:none;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.list li{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:6px}
+.list span:last-child{font-family:var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.layer{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="stripe" aria-hidden="true"></div>
+  <h1>แต่งตัวให้<span>น้องอาบี้</span></h1>
+  <p class="sub" id="intro">อ่านงาน แล้วแตะ PPE ให้น้องอาบี้ใส่ให้ถูก แตะซ้ำเพื่อถอดออก</p>
+
+  <!-- Intro / name -->
+  <div class="namebox" id="namebox">
+    <label for="pname">ชื่อผู้เล่น</label>
+    <input id="pname" placeholder="ชื่อ-นามสกุล หรือ รหัสพนักงาน" maxlength="60" autocomplete="name">
+    <label for="pdept">แผนก</label>
+    <input id="pdept" placeholder="เช่น QA, Production, Maintenance" maxlength="40">
+    <div class="err" id="err" hidden>กรอกชื่อและแผนกก่อนเริ่มเกม</div>
+  </div>
+
+  <!-- Play -->
+  <div id="play" hidden style="display:contents">
+    <div class="hud"><span>งาน <b id="qn">1</b>/6</span><span>คะแนน <b id="score">0</b></span></div>
+    <div class="job"><span class="area" id="area"></span><span class="t" id="job"></span><span class="n" id="need"></span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 200 290" role="img" aria-label="น้องอาบี้">
+      <!-- legs + safety shoes (always on) -->
+      <rect x="72" y="188" width="24" height="72" rx="10" fill="#2f4f86"/>
+      <rect x="104" y="188" width="24" height="72" rx="10" fill="#2f4f86"/>
+      <rect x="64" y="252" width="36" height="18" rx="7" fill="#2b2b2b"/>
+      <rect x="100" y="252" width="36" height="18" rx="7" fill="#2b2b2b"/>
+      <rect x="64" y="262" width="36" height="6" rx="3" fill="#f5c400"/>
+      <rect x="100" y="262" width="36" height="6" rx="3" fill="#f5c400"/>
+      <!-- arms -->
+      <rect x="40" y="112" width="22" height="82" rx="11" fill="#3b63a8"/>
+      <rect x="138" y="112" width="22" height="82" rx="11" fill="#3b63a8"/>
+      <circle cx="51" cy="198" r="11" fill="#f2c7a0"/>
+      <circle cx="149" cy="198" r="11" fill="#f2c7a0"/>
+      <!-- torso (uniform) -->
+      <rect x="60" y="106" width="80" height="92" rx="20" fill="#3b63a8"/>
+      <rect x="92" y="112" width="16" height="10" rx="3" fill="#ffffff" opacity=".85"/>
+      <!-- vest -->
+      <g class="layer" id="L-vest">
+        <path d="M60 126 Q60 106 80 106 L94 106 L94 198 L68 198 Q60 198 60 188 Z" fill="#ff8a00"/>
+        <path d="M140 126 Q140 106 120 106 L106 106 L106 198 L132 198 Q140 198 140 188 Z" fill="#ff8a00"/>
+        <rect x="60" y="150" width="34" height="7" fill="#e6e8ea"/><rect x="106" y="150" width="34" height="7" fill="#e6e8ea"/>
+        <rect x="60" y="170" width="34" height="7" fill="#e6e8ea"/><rect x="106" y="170" width="34" height="7" fill="#e6e8ea"/>
+      </g>
+      <!-- harness -->
+      <g class="layer" id="L-harness" stroke="#d1301c" stroke-width="6" stroke-linecap="round" fill="none">
+        <path d="M78 108 L78 196"/><path d="M122 108 L122 196"/>
+        <path d="M78 140 L122 140"/><path d="M78 196 Q100 182 122 196"/>
+        <circle cx="100" cy="122" r="5" fill="#9aa3ad" stroke="#5a6470" stroke-width="3"/>
+      </g>
+      <!-- gloves -->
+      <g class="layer" id="L-gCut"><rect x="39" y="178" width="24" height="16" rx="6" fill="#8a929c"/><circle cx="51" cy="199" r="13" fill="#9aa2ac"/>
+        <rect x="137" y="178" width="24" height="16" rx="6" fill="#8a929c"/><circle cx="149" cy="199" r="13" fill="#9aa2ac"/></g>
+      <g class="layer" id="L-gChem"><rect x="38" y="160" width="26" height="34" rx="8" fill="#22914f"/><circle cx="51" cy="199" r="13" fill="#2aa85d"/>
+        <rect x="136" y="160" width="26" height="34" rx="8" fill="#22914f"/><circle cx="149" cy="199" r="13" fill="#2aa85d"/></g>
+      <!-- neck + head -->
+      <rect x="90" y="96" width="20" height="14" fill="#f2c7a0"/>
+      <circle cx="100" cy="66" r="36" fill="#f6d2ae"/>
+      <path d="M64 62 Q66 28 100 28 Q136 28 136 62 Q124 46 100 46 Q78 46 64 62 Z" fill="#3a2a22"/>
+      <circle cx="87" cy="68" r="4.5" fill="#2b2b2b"/><circle cx="113" cy="68" r="4.5" fill="#2b2b2b"/>
+      <circle cx="80" cy="80" r="5" fill="#f2a08e" opacity=".6"/><circle cx="120" cy="80" r="5" fill="#f2a08e" opacity=".6"/>
+      <path d="M90 84 Q100 93 110 84" stroke="#7a3b2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- mask -->
+      <g class="layer" id="L-mask">
+        <path d="M68 74 L80 77 M132 74 L120 77" stroke="#c9ced3" stroke-width="2"/>
+        <path d="M80 76 Q100 70 120 76 L118 92 Q100 102 82 92 Z" fill="#f4f6f8" stroke="#c9ced3" stroke-width="1.5"/>
+        <path d="M86 84 L114 84 M88 90 L112 90" stroke="#d5dade" stroke-width="1.5"/>
+      </g>
+      <!-- glasses -->
+      <g class="layer" id="L-glasses">
+        <rect x="75" y="60" width="22" height="16" rx="5" fill="#bfe3f5" fill-opacity=".55" stroke="#2b2b2b" stroke-width="2.5"/>
+        <rect x="103" y="60" width="22" height="16" rx="5" fill="#bfe3f5" fill-opacity=".55" stroke="#2b2b2b" stroke-width="2.5"/>
+        <path d="M97 66 L103 66" stroke="#2b2b2b" stroke-width="2.5"/>
+      </g>
+      <!-- earmuffs -->
+      <g class="layer" id="L-ear">
+        <path d="M66 66 Q66 22 100 22 Q134 22 134 66" stroke="#d1301c" stroke-width="6" fill="none"/>
+        <rect x="56" y="56" width="15" height="24" rx="7" fill="#d1301c"/>
+        <rect x="129" y="56" width="15" height="24" rx="7" fill="#d1301c"/>
+      </g>
+      <!-- helmet -->
+      <g class="layer" id="L-helmet">
+        <path d="M64 58 Q64 22 100 22 Q136 22 136 58 Z" fill="#f5c400"/>
+        <rect x="56" y="54" width="88" height="9" rx="4.5" fill="#e0b000"/>
+        <rect x="96" y="24" width="8" height="32" rx="4" fill="#e0b000"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="tray" id="tray" hidden></div>
+  <div id="fb" hidden></div>
+
+  <div class="result" id="result" hidden>
+    <div class="big" id="final">0</div>
+    <div class="rank" id="rank"></div>
+    <div class="sub" id="stat"></div>
+    <div class="sub" id="send"></div>
+    <ul class="list" id="list"></ul>
+  </div>
+
+  <div class="player" id="player" hidden></div>
+  <button class="btn" id="btn">เริ่มเลย</button>
+</div>
+<iframe name="scoreSink" id="scoreSink" hidden></iframe>
+
+<script>
+/* ===== ตั้งค่า Google Form ===== */
+const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLSew0FRGW6kgDXRXR31iW8X-LhJuCaokASDe2tnDwcUSjLwvdw/formResponse";
+const ENTRY_NAME="entry.2146890152";
+const ENTRY_SCORE="entry.1870921624";
+const ENTRY_DEPT="entry.418576817";
+const ENTRY_GAME="";  /* ถ้าเพิ่มคำถาม "เกม" ในฟอร์ม ใส่เลข entry ที่นี่ */
+const GAME_NAME="แต่งตัวให้น้องอาบี้";
+
+const PPE={
+ helmet:["⛑️","หมวกนิรภัย"], glasses:["🥽","แว่นนิรภัย"], ear:["🎧","ที่ครอบหู"], mask:["😷","หน้ากากกันฝุ่น"],
+ vest:["🦺","เสื้อสะท้อนแสง"], gCut:["🧤","ถุงมือกันบาด"], gChem:["🧪","ถุงมือกันสารเคมี"], harness:["🪢","เข็มขัดนิรภัย"]
+};
+const JOBS=[
+ {a:"PAPER MACHINE",j:"เดินตรวจเครื่อง Paper Machine ที่เสียงดัง",need:["ear","glasses"],w:"เสียงเกิน 85 dB(A) ต้องป้องกันหู และสวมแว่นกันเศษกระเด็น"},
+ {a:"CHEMICAL",j:"เติมโซดาไฟเข้าถังผสม",need:["glasses","gChem"],w:"สารกัดกร่อนกระเด็นใส่ตาและมือได้"},
+ {a:"CONVERTING",j:"เปลี่ยนใบมีด Log saw (ทำ LOTO แล้ว)",need:["glasses","gCut"],w:"ใบมีดคมมาก ต้องใช้ถุงมือกันบาด"},
+ {a:"HOUSEKEEPING",j:"ทำความสะอาดฝุ่นกระดาษบนโครงเครื่อง",need:["mask","glasses"],w:"ฝุ่นกระดาษเข้าจมูกและตาได้ง่าย"},
+ {a:"MAINTENANCE",j:"ขึ้นไปเปลี่ยนหลอดไฟสูง 3 เมตร",need:["helmet","harness"],w:"งานสูงเกิน 2 เมตร ต้องใช้เข็มขัดนิรภัยเต็มตัว"},
+ {a:"WAREHOUSE",j:"ให้สัญญาณเครนยก Jumbo roll",need:["helmet","vest"],w:"ป้องกันของหล่นใส่หัว และให้คนขับมองเห็นชัด"},
+ {a:"REWINDER",j:"คุมเครื่อง Rewinder ขณะลูกกลิ้งหมุน",need:["ear","glasses"],trap:true,w:"ห้ามสวมถุงมือใกล้ลูกกลิ้งหมุน ถุงมืออาจถูกดึงพันมือเข้าไป"},
+ {a:"CHEMICAL",j:"เทสารเคมีชนิดผงลงถังผสม",need:["mask","glasses","gChem"],w:"ผงเคมีฟุ้งเข้าจมูก ตา และสัมผัสผิวได้"},
+ {a:"WAREHOUSE",j:"ตัดฟิล์มห่อพาเลทด้วยคัตเตอร์",need:["gCut"],w:"ใบมีดคัตเตอร์บาดมือได้ง่าย"}
+];
+const ROUNDS=6;
+const $=id=>document.getElementById(id);
+let state="intro",locked=false,deck=[],i=0,score=0,sel=new Set(),t0=0,log=[];
+
+/* tray */
+$("tray").innerHTML=Object.keys(PPE).map(k=>
+  `<button class="item" id="it-${k}" data-k="${k}" aria-pressed="false"><span class="ic">${PPE[k][0]}</span>${PPE[k][1]}</button>`).join("");
+$("tray").querySelectorAll(".item").forEach(b=>b.onclick=()=>{
+  if(state!=="dress")return;const k=b.dataset.k;
+  sel.has(k)?sel.delete(k):sel.add(k);
+  b.setAttribute("aria-pressed",sel.has(k));$("L-"+k).classList.toggle("on",sel.has(k));
+});
+
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function undress(){Object.keys(PPE).forEach(k=>{$("L-"+k).classList.remove("on");const b=$("it-"+k);b.className="item";b.disabled=false;b.setAttribute("aria-pressed","false")})}
+
+function start(){
+  const miss=!$("pname").value.trim()?"pname":!$("pdept").value.trim()?"pdept":null;
+  if(!locked&&miss){$("err").hidden=false;$(miss).focus();return}
+  if(!locked){
+    locked=true;$("pname").readOnly=$("pdept").readOnly=true;
+    const b1=document.createElement("b"),b2=document.createElement("b");
+    b1.textContent=$("pname").value.trim();b2.textContent=$("pdept").value.trim();
+    $("player").append("ผู้เล่น: ",b1," · แผนก: ",b2);
+  }
+  $("namebox").hidden=true;$("intro").hidden=true;$("err").hidden=true;$("result").hidden=true;$("player").hidden=true;
+  deck=shuffle(JOBS).slice(0,ROUNDS);i=0;score=0;log=[];
+  $("play").hidden=false;$("play").style.display="contents";$("tray").hidden=false;ask();
+}
+function ask(){
+  state="dress";sel=new Set();undress();const q=deck[i];
+  $("qn").textContent=i+1;$("score").textContent=score;$("area").textContent=q.a;$("job").textContent=q.j;
+  $("need").textContent=`ต้องใช้ ${q.need.length} ชิ้น`;
+  $("fb").hidden=true;$("btn").textContent="ส่งน้องอาบี้ไปทำงาน";t0=performance.now();
+}
+function check(){
+  state="checked";const q=deck[i],need=new Set(q.need);let hit=0,extra=0,miss=0;
+  Object.keys(PPE).forEach(k=>{
+    const b=$("it-"+k);b.disabled=true;
+    if(sel.has(k)&&need.has(k)){hit++;b.classList.add("r-ok")}
+    else if(sel.has(k)){extra++;b.classList.add("r-extra")}
+    else if(need.has(k)){miss++;b.classList.add("r-miss")}
+  });
+  const perfect=!extra&&!miss,sec=(performance.now()-t0)/1000;
+  const speed=perfect?Math.max(0,Math.round(40-sec*2)):0;
+  const gain=Math.max(0,hit*20-extra*10+(perfect?50:0)+speed);score+=gain;
+  log.push({j:q.j,gain,perfect});
+  const gloveTrap=q.trap&&(sel.has("gCut")||sel.has("gChem"));
+  const fb=$("fb");fb.className="fb "+(perfect?"ok":"bad");
+  fb.innerHTML=`<strong>${perfect?"แต่งตัวถูกต้อง! +"+gain:"ยังไม่ครบ +"+gain}</strong>`
+    +`<p>${gloveTrap?"<b>ระวัง!</b> ":""}${q.w}</p>`
+    +(perfect?"":`<p>ที่ถูก: ${q.need.map(k=>PPE[k][1]).join(", ")}</p>`);
+  fb.hidden=false;$("score").textContent=score;
+  if(perfect)q.need.forEach(k=>$("L-"+k).classList.add("on"));
+  $("btn").textContent=i===ROUNDS-1?"ดูผลคะแนน":"งานต่อไป";
+}
+function finish(){
+  state="end";undress();$("play").hidden=true;$("play").style.display="none";$("tray").hidden=true;$("fb").hidden=true;
+  const p=log.filter(x=>x.perfect).length;
+  $("final").textContent=score;
+  $("rank").textContent=p===ROUNDS?"น้องอาบี้ปลอดภัยครบทุกงาน!":p>=4?"เก่งมาก! Safety Leader":p>=2?"ดีแล้ว ฝึกอีกนิด":"ลองใหม่อีกรอบนะ";
+  $("stat").textContent=`${$("pname").value.trim()} (${$("pdept").value.trim()}) · แต่งตัวถูกครบ ${p} จาก ${ROUNDS} งาน`;
+  $("list").innerHTML=log.map(x=>`<li><span>${x.perfect?"✓":"✗"} ${x.j}</span><span>+${x.gain}</span></li>`).join("");
+  $("result").hidden=false;$("player").hidden=false;$("btn").textContent="เล่นอีกครั้ง";
+  if(p===ROUNDS)["helmet","glasses","vest"].forEach(k=>$("L-"+k).classList.add("on"));
+  sendScore();
+}
+function sendScore(){
+  const s=$("send");
+  const f=document.createElement("form");f.method="POST";f.action=FORM_URL;f.target="scoreSink";f.hidden=true;
+  const data={[ENTRY_NAME]:$("pname").value.trim(),[ENTRY_DEPT]:$("pdept").value.trim(),[ENTRY_SCORE]:score};
+  if(ENTRY_GAME)data[ENTRY_GAME]=GAME_NAME;
+  for(const k in data){const el=document.createElement("input");el.type="hidden";el.name=k;el.value=data[k];f.appendChild(el)}
+  document.body.appendChild(f);s.textContent="กำลังส่งคะแนน…";
+  $("scoreSink").onload=()=>{s.textContent="ส่งคะแนนเรียบร้อย";f.remove()};
+  try{f.submit()}catch(e){s.textContent="ส่งคะแนนไม่สำเร็จ"}
+}
+$("btn").onclick=()=>{
+  if(state==="intro"||state==="end")start();
+  else if(state==="dress")check();
+  else if(state==="checked"){i++;i<ROUNDS?ask():finish()}
+};
+/* show a dressed preview on the intro screen */
+["helmet","glasses","vest"].forEach(k=>$("L-"+k).classList.add("on"));
+</script>
+</body>
+</html>
